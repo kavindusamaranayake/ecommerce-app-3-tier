@@ -114,7 +114,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./backend
-          push: false
+          push: true
           load: true
           tags: kavindusamaranayake/ecommerce-app-backend:latest
           file: ./backend/Dockerfile
@@ -134,7 +134,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
-          push: false
+          push: true
           load: true
           tags: kavindusamaranayake/ecommerce-app-frontend:latest
           file: ./frontend/Dockerfile 
