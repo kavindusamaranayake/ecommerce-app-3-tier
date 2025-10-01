@@ -1,0 +1,20 @@
+# Node.js
+node_modules/
+*.log
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Docker
+*.dockerignore
+
+# Kubernetes
+*.yaml.bak
+.minikube/
+
+# OS
+.DS_Store
+Thumbs.db
