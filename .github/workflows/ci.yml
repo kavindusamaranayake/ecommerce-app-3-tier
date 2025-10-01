@@ -40,6 +40,110 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-          
 
+  gitLeaksScan:
+    name: GitLeaks Scan
+    runs-on: ubuntu-latest
+    needs: compile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cleanup temp gitleaks file
+        run: 
+          rm -f /tmp/gitleaks.tmp
+          rm -rf /tmp/gitleaks-*
+
+      - name: Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+
+      - name: Run Gitleaks
+        run: gitleaks detect --source . --exit-code 1
+
+  TrivyFileScan:
+    name: Trivy File Scan
+    runs-on: ubuntu-latest
+    needs: gitLeaksScan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cleanup temp trivy file
+        run: 
+          rm -f /tmp/trivy.tmp
+          rm -rf /tmp/trivy-*
+
+      - name: Trivy File Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Show Trivy Scan Result
+        if: failure()
+        run: cat /tmp/trivy.tmp
           
+  dockerBuild:
+    name: Docker Build and Push with Trivy Scan
+    runs-on: ubuntu-latest
+    needs: TrivyFileScan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: all
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: false
+          tags: kavindusamaranayake/ecommerce-app-backend:latest
+          file: ./Dockerfile
+
+      - name: Run Trivy vulnerability scan for Backend Image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: kavindusamaranayake/ecommerce-app-backend:latest
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: false
+          tags: kavindusamaranayake/ecommerce-app-frontend:latest
+          file: ./Dockerfile
+
+      - name: Run Trivy vulnerability scan for Frontend Image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: image
+          image-ref: kavindusamaranayake/ecommerce-app-frontend:latest
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
