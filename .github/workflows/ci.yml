@@ -116,7 +116,7 @@ jobs:
           context: ./backend
           push: false
           tags: kavindusamaranayake/ecommerce-app-backend:latest
-          file: ./Dockerfile
+          file: ./backend/Dockerfile
 
       - name: Run Trivy vulnerability scan for Backend Image
         uses: aquasecurity/trivy-action@0.28.0
@@ -135,7 +135,7 @@ jobs:
           context: ./frontend
           push: false
           tags: kavindusamaranayake/ecommerce-app-frontend:latest
-          file: ./Dockerfile
+          file: ./frontend/Dockerfile 
 
       - name: Run Trivy vulnerability scan for Frontend Image
         uses: aquasecurity/trivy-action@0.28.0
