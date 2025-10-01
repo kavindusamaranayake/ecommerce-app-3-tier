@@ -115,6 +115,7 @@ jobs:
         with:
           context: ./backend
           push: false
+          load: true
           tags: kavindusamaranayake/ecommerce-app-backend:latest
           file: ./backend/Dockerfile
 
@@ -134,6 +135,7 @@ jobs:
         with:
           context: ./frontend
           push: false
+          load: true
           tags: kavindusamaranayake/ecommerce-app-frontend:latest
           file: ./frontend/Dockerfile 
 
