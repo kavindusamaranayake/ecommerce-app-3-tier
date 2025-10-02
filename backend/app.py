@@ -29,7 +29,10 @@ def ready():
 @app.route('/products', methods=['GET', 'POST'])
 def handle_products():
     if request.method == 'GET':
-        product_list = list(products.find({}, {'_id': str}))  # Convert ObjectId to str for JSON
+        product_list = []
+        for product in products.find({}):
+            product['_id'] = str(product['_id'])
+            product_list.append(product)
         return jsonify(product_list)
     elif request.method == 'POST':
         product = request.json
